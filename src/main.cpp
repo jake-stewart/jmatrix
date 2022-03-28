@@ -180,6 +180,9 @@ int main(int argc, char **argv) {
         fade_trail_length = min_tail_length;
     }
 
+    fg = options.fg;
+    bg = options.bg;
+
     spacing = options.gap + style_width + 2;
 
     if (options.ascii) {

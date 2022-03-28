@@ -34,12 +34,12 @@ bool parse_int(char *number_string, int *number) {
 
 bool parse_color(char* hex_string, Color *color) {
     bool valid = true;
-    int length = strlen(hex_string);
 
     if (hex_string[0] == '#') {
-        hex_string += 1;
+        hex_string++;
     }
-    
+
+    int length = strlen(hex_string);
     if (length != 6) {
         valid = false;
     }
