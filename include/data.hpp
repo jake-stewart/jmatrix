@@ -3,6 +3,7 @@
 
 const int ANIME_SIZE = 170;
 const int ANIME_WIDTH = 1;
+const char *ANIME_SPACE = "　";
 const char ANIME_CHARS[ANIME_SIZE][4] = {
     "ネ", "キ", "ビ", "る", "ョ", "ブ", "た", "タ", "ず", "ぞ",
     "ト", "ふ", "ね", "ゲ", "エ", "グ", "ナ", "ル", "ヸ", "ゅ",
@@ -25,6 +26,7 @@ const char ANIME_CHARS[ANIME_SIZE][4] = {
 
 const int ASCII_SIZE = 94;
 const int ASCII_WIDTH = 0;
+const char *ASCII_SPACE = " ";
 const char ASCII_CHARS[ASCII_SIZE][4] = {
     "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
     "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
