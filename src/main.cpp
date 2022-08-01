@@ -8,10 +8,15 @@
 #include <chrono>
 #include <vector>
 
+#include <__locale>
+#include <curses.h>
+
 using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
+
+WINDOW *window;
 
 struct Tail
 {
@@ -29,6 +34,7 @@ int n_tails;
 int        width, height;
 
 const char (*style_chars)[4];
+const char *style_space;
 int        style_size;
 int        style_width;
 
@@ -47,7 +53,7 @@ void new_tail(int x) {
         tails.push_back(Tail());
     }
     tails[n_tails].x = x;
-    tails[n_tails].y = -1;
+    tails[n_tails].y = 0;
     tails[n_tails].length = min_tail_length
         + (rand() % (max_tail_length - min_tail_length));
     tails[n_tails].seed = rand() % 12345;
@@ -71,9 +77,9 @@ void do_frame() {
             entrances[tail->x] = true;
         }
 
-        if (tail_y < height && tail_y >= 0) {
-            move(tail->x, tail_y);
-            putchar(' ');
+        if (tail_y < height) {
+            move(tail_y, tail->x);
+            addstr(style_space);
         }
     }
 
@@ -81,43 +87,37 @@ void do_frame() {
         float p1 = (float)(fi - 1) / fade_trail_length;
         float p2 = 1.0 - p1;
 
-        set_color(
-            p1 * fg.r + p2 * bg.r,
-            p1 * fg.g + p2 * bg.g,
-            p1 * fg.b + p2 * bg.b
-        );
+        // set_color(
+        //     p1 * fg.r + p2 * bg.r,
+        //     p1 * fg.g + p2 * bg.g,
+        //     p1 * fg.b + p2 * bg.b
+        // );
 
         for (int i = 0; i < n_tails; i++) {
             Tail *tail = &tails[i];
             int tail_y = tail->y - tail->length + fi;
             if (tail_y >= 0 && tail_y < height) {
-                move(tail->x, tail_y);
-                printf(
-                    "%s", style_chars[(tail->seed * (tail_y + 1)) % style_size]
-                );
+                move(tail_y, tail->x);
+                addstr(style_chars[(tail->seed * (tail_y + 1)) % style_size]);
             }
         }
     }
 
-    set_color(fg.r, fg.g, fg.b);
+    // set_color(fg.r, fg.g, fg.b);
     for (int i = 0; i < n_tails; i++) {
         Tail *tail = &tails[i];
         if (tail->y - 1 < height) {
-            move(tail->x, tail->y - 1);
-            printf(
-                "%s", style_chars[(tail->seed * tail->y) % style_size]
-            );
+            move(tail->y - 1, tail->x);
+            addstr(style_chars[(tail->seed * tail->y) % style_size]);
         }
     }
 
-    set_color(255, 255, 255);
+    // set_color(255, 255, 255);
     for (int i = 0; i < n_tails; i++) {
         Tail *tail = &tails[i];
-        if (tail->y < height) {
-            move(tail->x, tail->y);
-            printf(
-                "%s", style_chars[(tail->seed * (tail->y + 1)) % style_size]
-            );
+        if (tail->y - 1 < height) {
+            move(tail->y, tail->x);
+            addstr(style_chars[(tail->seed * (tail->y + 1)) % style_size]);
         }
         else {
             if (tail->y - tail->length == height) {
@@ -130,28 +130,41 @@ void do_frame() {
         if (!entrances[i]) {
             continue;
         }
-        // 3 is my lucky number
         if (rand() % rarity == 0) {
             new_tail(i);
         }
     }
 }
 
-void on_resize(int w, int h) {
-    width = w;
-    height = h;
-    n_tails = 0;
-    for (int i = 0; i < entrances.size(); i++) {
-        entrances[i] = true;
-    }
+void on_resize() {
+    getmaxyx(window, height, width);
+    height /= 2;
+    width  /= 2;
     if (width > entrances.size()) {
         entrances.resize(width, true);
     }
-    clear_term();
+
+    for (int i = width; i < width; i++) {
+        entrances[i] = true;
+    }
+
+    for (int i = width; i < width; i++) {
+        entrances[i] = false;
+    }
+
+    for (int i = 0; i < n_tails; i++) {
+        if (tails[i].x > width) {
+            remove_tail(i--);
+        }
+    }
+
+    clear();
 }
 
 
 int main(int argc, char **argv) {
+    setlocale(LC_ALL, "");
+
     Options options;
 
     if (!read_options(argc, argv, &options)) {
@@ -183,36 +196,48 @@ int main(int argc, char **argv) {
     fg = options.fg;
     bg = options.bg;
 
-    spacing = options.gap + style_width + 2;
+    spacing = options.gap + 1;
 
     if (options.ascii) {
         style_width = ASCII_WIDTH;
         style_size = ASCII_SIZE;
         style_chars = ASCII_CHARS;
+        style_space = ASCII_SPACE;
     }
     else {
         style_width = ANIME_WIDTH;
         style_size = ANIME_SIZE;
         style_chars = ANIME_CHARS;
+        style_space = ANIME_SPACE;
     }
 
-    register_resize_callback(on_resize);
-    init_term();
-    set_cursor(false);
+    window = initscr();
+    // register_resize_callback(on_resize);
+    // init_term();
+    curs_set(0);
+    // set_cursor(false);
+    noecho();
 
+    timeout(0);
+    on_resize();
     while (true) {
+        int c = getch();
+        if (c == KEY_RESIZE) {
+            on_resize();
+        }
         steady_clock::time_point start, end;
 
         start = steady_clock::now();
         do_frame();
-        fflush(stdout);
         end = steady_clock::now();
 
         // fucking C++ disgusting piece of shit:
         int dur = duration_cast<milliseconds>(end - start).count();
 
-        if (dur < frame_time)
+        if (dur < frame_time) {
             usleep((frame_time - dur) * 1000);
+        }
     }
+    endwin();
 }
 
