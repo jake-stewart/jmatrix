@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+namespace fs = std::filesystem;
+
 bool parse_int(char *number_string, int *number) {
     bool valid = true;
     int length = strlen(number_string);
@@ -74,3 +76,9 @@ bool isVowel(char c) {
     }
 }
 
+fs::path expandUserPath(std::string user_path) {
+    if (user_path.starts_with("~/")) {
+        return getenv("HOME") / fs::path(user_path.substr(2));
+    }
+    return user_path;
+}

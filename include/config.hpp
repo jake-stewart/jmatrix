@@ -9,6 +9,8 @@
 struct Config
 {
     int activeSourceStyle = NO_STYLE;
+    int tailStyle = NO_STYLE;
+    int headStyle = NO_STYLE;
 
     int speed = 1;
     int gap = 1;
