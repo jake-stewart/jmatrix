@@ -32,43 +32,6 @@ bool parse_int(char *number_string, int *number) {
     return true;
 }
 
-bool parse_color(char* hex_string, Color *color) {
-    bool valid = true;
-
-    if (hex_string[0] == '#') {
-        hex_string++;
-    }
-
-    int length = strlen(hex_string);
-    if (length != 6) {
-        valid = false;
-    }
-
-    for (int i = 0; i < length; i++) {
-        switch (hex_string[i]) {
-            case '0' ... '9':
-            case 'A' ... 'F':
-            case 'a' ... 'f':
-                break;
-
-            default:
-                valid = false;
-                break;
-        }
-    }
-
-    if (!valid) {
-        printf("ERROR: Invalid hex color format: '%s'\n", hex_string);
-        return false;
-    }
-
-    sscanf(hex_string,     "%02hhX", &color->r);
-    sscanf(hex_string + 2, "%02hhX", &color->g);
-    sscanf(hex_string + 4, "%02hhX", &color->b);
-
-    return true;
-}
-
 void print_usage(char *title) {
     printf("Usage: %s {OPTIONS}\n\n", title);
     printf("OPTIONS:\n");
@@ -91,3 +54,23 @@ void print_usage(char *title) {
     printf("    --help | -h\n");
     printf("        Show this page\n");
 }
+
+std::string toLower(std::string s) {
+    for(char &c : s)
+        c = tolower(c);
+    return s;
+}
+
+bool isVowel(char c) {
+    switch (c) {
+        case 'a': case 'A':
+        case 'e': case 'E':
+        case 'i': case 'I':
+        case 'o': case 'O':
+        case 'u': case 'U':
+            return true;
+        default:
+            return false;
+    }
+}
+

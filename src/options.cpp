@@ -8,27 +8,7 @@ bool read_options(int argc, char **argv, Options *options) {
     for (int i = 1; i < argc; i++) {
         char *arg = argv[i];
 
-        if (strcmp(arg, "--fg") == 0) {
-            if (++i == argc) {
-                printf("ERROR: --fg is missing a value\n");
-                return false;
-            }
-            if (!parse_color(argv[i], &options->fg)) {
-                return false;
-            }
-        }
-
-        else if (strcmp(arg, "--bg") == 0) {
-            if (++i == argc) {
-                printf("ERROR: --bg is missing a value\n");
-                return false;
-            }
-             if (!parse_color(argv[i], &options->bg)) {
-                 return false;
-             }
-        }
-
-        else if (strcmp(arg, "--speed") == 0) {
+        if (strcmp(arg, "--speed") == 0) {
             if (++i == argc) {
                 printf("ERROR: --speed is missing a value\n");
                 return false;
